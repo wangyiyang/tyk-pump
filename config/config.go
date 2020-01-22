@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"encoding/json"
@@ -8,15 +8,18 @@ import (
 
 	"github.com/TykTechnologies/tyk-pump/pumps"
 	"github.com/TykTechnologies/tyk-pump/storage"
+	logger "github.com/TykTechnologies/tykcommon-logger"
 )
 
 const ENV_PREVIX = "TYK_PMP"
 
+var log = logger.GetLogger()
+
 type PumpConfig struct {
 	Name    string                 `json:"name"` // Deprecated
 	Type    string                 `json:"type"`
+	Timeout int                    `json:"timeout"`
 	Meta    map[string]interface{} `json:"meta"` // TODO: convert this to json.RawMessage and use regular json.Unmarshal
-	Timeout int                    `json:"meta"`
 }
 
 type TykPumpConfiguration struct {
@@ -31,8 +34,10 @@ type TykPumpConfiguration struct {
 	LogLevel               string                     `json:"log_level"`
 }
 
-func LoadConfig(filePath *string, configStruct *TykPumpConfiguration) {
-	configuration, err := ioutil.ReadFile(*filePath)
+func LoadConfig(filePath *string) *TykPumpConfiguration {
+	var configStruct *TykPumpConfiguration
+	path := *filePath
+	configuration, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatal("Couldn't load configuration file: ", err)
 	}
@@ -46,4 +51,6 @@ func LoadConfig(filePath *string, configStruct *TykPumpConfiguration) {
 	if overrideErr != nil {
 		log.Error("Failed to process environment variables after file load: ", overrideErr)
 	}
+
+	return configStruct
 }
